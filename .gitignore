@@ -13,6 +13,7 @@ env/
 .vscode/
 
 # Data & secrets — must never be published
+# (dataset repos: remove the data ignores below if the data itself is the published artifact)
 data/
 *.csv
 *.parquet

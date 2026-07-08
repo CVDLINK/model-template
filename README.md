@@ -1,6 +1,3 @@
-# repo-template
-CVDLINK template repo for publishing models, tools, and datasets to Zenodo → OpenAIRE → EOSC.
-
 # <Project name>
 
 > Created from the CVDLINK **repo-template**. Fill in the placeholders below, then work

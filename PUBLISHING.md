@@ -1,9 +1,14 @@
 # Publishing this project
 
-This repo was created from the CVDLINK **repo-template**. To publish it to
-Zenodo → OpenAIRE → EOSC (and, if it's an AI model, register it in AIMe), follow the full guide:
+This repo was created from the CVDLINK **repo-template**. Work through the checklist below to
+release it to Zenodo → OpenAIRE → EOSC. It applies to any research output — a model, a tool, or
+a dataset.
 
-➡ **[cvdlink/ai-model-publishing → docs/instructions.md](https://github.com/cvdlink/ai-model-publishing/blob/main/docs/instructions.md)**
+If your output is an **AI model**, it also gets an AI Card and an AIMe registry entry:
+➡ **[`ai-model/`](ai-model/)**. If it isn't, **delete the `ai-model/` folder** — nothing else
+refers to it.
+
+![Data flow](data-flow.jpg)
 
 ## Checklist
 
@@ -22,14 +27,16 @@ release it is not.
 
 ### 2 · If this project is an AI model — in this repo (GitHub)
 
-- [ ] Write the model's **model description file** — one file that feeds both the AI Card and the
-      AIMe record.
+Full detail in **[`ai-model/`](ai-model/)**. In short:
+
+- [ ] Write the model's **model description file** (`ai-model/model-description.yaml`, copied from
+      the template beside it) — one file that feeds both the AI Card and the AIMe record.
 - [ ] Generate the **AI Card** and commit it — it is versioned with the model and travels into the
       Zenodo archive with the release.
 - [ ] Generate and submit the **AIMe registry record**; keep the returned **report key** (you need
       it to update the entry later) and add the registry link to `README.md`.
 
-*A tool or dataset skips this whole section.*
+*Not an AI model? Delete the `ai-model/` folder and skip to stage 3.*
 
 ### 3 · Make it public (GitHub)
 
@@ -69,10 +76,29 @@ needs one.
 
 - This template uses **`.zenodo.json`** for citation/metadata — it's the file Zenodo reads,
   and the only one that can carry the `cvdlink` community and EU grant info.
-- Optional: add a `CITATION.cff` too if you want GitHub's "Cite this repository" button.
+- The `grants` entry is pre-filled with CVDLINK's Horizon Europe grant (`101137278`) — leave it
+  as-is so the record links to the project in OpenAIRE/EOSC.
+- If you change the `LICENSE`, update the `.zenodo.json` `"license"` id to match (Zenodo uses
+  lowercase ids, e.g. `"mit"`, `"apache-2.0"`, `"cc-by-4.0"`).
+- `"upload_type"` is pre-set to `software`. **Publishing a dataset or a document instead? See
+  below.**
+
+<details>
+<summary><strong>Metadata reference</strong> — other output types, contributors, CITATION.cff, OpenAIRE minimums</summary>
+
+- **Other `upload_type` values.** `software` (default) covers models, tools and code. Use
+  `dataset` for data, or `publication` for documentation and deliverables. Full list:
+  `publication`, `poster`, `presentation`, `dataset`, `image`, `video`, `software`, `lesson`,
+  `physicalobject`, `other`.
+  - `publication` also needs a `"publication_type"` (e.g. `report`, `deliverable`,
+    `softwaredocumentation`, `article`); `image` needs an `"image_type"` (e.g. `figure`, `diagram`).
+- **The `contributors` block is optional.** Fill it in for people who aren't authors (e.g. data
+  curator, supervisor), or delete the whole block if there are none. Each contributor needs a
+  `type` (e.g. `ProjectMember`, `DataCurator`, `Supervisor`).
+- **`CITATION.cff` is optional.** Add one if you want GitHub's "Cite this repository" button.
   Zenodo ignores it when `.zenodo.json` is present, so it's purely for the GitHub UI.
-- The `contributors` block is **optional** — fill it in for people who aren't authors (e.g. data curator, supervisor), or **delete the whole block** if there are none. Each contributor needs a `type` (e.g. `ProjectMember`, `DataCurator`, `Supervisor`).
-- `.zenodo.json` `"upload_type"` defaults to `software` (models, tools, code). Change it for other outputs: `dataset` for data, or `publication` for documentation/deliverables. Full list: `publication`, `poster`, `presentation`, `dataset`, `image`, `video`, `software`, `lesson`, `physicalobject`, `other`.
-  - `publication` also needs a `"publication_type"` (e.g. `report`, `deliverable`, `softwaredocumentation`, `article`); `image` needs an `"image_type"` (e.g. `figure`, `diagram`).
-- The `grants` entry is pre-filled with CVDLINK's Horizon Europe grant (`101137278`) — leave it as-is so the record links to the project in OpenAIRE/EOSC.
-- If you change the `LICENSE`, update the `.zenodo.json` `"license"` id to match (Zenodo uses lowercase ids, e.g. `"mit"`, `"apache-2.0"`, `"cc-by-4.0"`).
+- **Minimum metadata for indexing (OpenAIRE).** Every research product needs at least one
+  persistent identifier — the Zenodo DOI covers this. Research software additionally needs only a
+  title and a publishing date, so a correctly filled `.zenodo.json` clears the bar comfortably.
+
+</details>

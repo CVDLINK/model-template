@@ -20,7 +20,7 @@
 ## Install / run
 
 ```bash
-# minimal example — replace with real steps (a placeholder is fine to start)
+# example only — nothing below exists yet; replace with your real steps
 pip install -r requirements.txt
 python run.py --input example_input
 ```
@@ -32,7 +32,7 @@ cohort it was built on, how it was evaluated, its limitations, and — for a sys
 people — its risk profile. The card is generated from the model description file and lives in
 this repo, so it is versioned with the model and archived with each release.
 
-- **AI Card:** <path to the card in this repo, e.g. `docs/ai-card.html`.>
+- **AI Card:** [`ai-model/model-description.html`](ai-model/model-description.html)
 - **AIMe registry:** <add the registry link once the record is submitted.>
 
 ## Maintainer

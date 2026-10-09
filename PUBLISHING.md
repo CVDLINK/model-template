@@ -7,19 +7,63 @@ Zenodo → OpenAIRE → EOSC (and, if it's an AI model, register it in AIMe), fo
 
 ## Checklist
 
+Everything up to the release is reversible — after the
+release it is not.
+
+### 1 · In this repo (GitHub)
+
 - [ ] Fill in `README.md`.
 - [ ] Update `CHANGELOG.md` for the release.
 - [ ] Confirm the `LICENSE` (default MIT — change if needed; don't hand-write license text).
 - [ ] Edit `.zenodo.json` (title, description, creators, keywords) — keep `communities: cvdlink`.
-- [ ] Make the repo **public** and confirm no sensitive content (data, credentials, internal URLs).
-- [ ] Cut a versioned GitHub **release** (this is the distributable snapshot).
-- [ ] Link the repo to **Zenodo** once → each future release is then archived with a DOI automatically.
+- [ ] **Validate `.zenodo.json`** (e.g. <https://www.jsonschemavalidator.net/>). If it has errors,
+      Zenodo silently publishes nothing — this failure gives you no warning.
+- [ ] Add the content you're sharing: code, weights, notebooks, evaluation results.
 
-### If this project is an AI model, also:
+### 2 · If this project is an AI model — in this repo (GitHub)
 
-- [ ] Only if the model isn't already in the **AI model store**: describe it in a single-source input file (it feeds both the AI Card and the AIMe record). If it's already in the store, the description is retrieved from there — nothing to re-enter.
-- [ ] Generate the **AI Card** and upload it to the model's **Zenodo record** — no need to duplicate it into this repo.
-- [ ] Generate and submit the **AIMe registry record**; add the registry link to `README.md`.
+- [ ] Write the model's **model description file** — one file that feeds both the AI Card and the
+      AIMe record.
+- [ ] Generate the **AI Card** and commit it — it is versioned with the model and travels into the
+      Zenodo archive with the release.
+- [ ] Generate and submit the **AIMe registry record**; keep the returned **report key** (you need
+      it to update the entry later) and add the registry link to `README.md`.
+
+*A tool or dataset skips this whole section.*
+
+### 3 · Make it public (GitHub)
+
+- [ ] Make the repo **public** and confirm no sensitive content (data, site identifiers,
+      credentials, internal URLs).
+
+### 4 · Connect to Zenodo (zenodo.org) — before releasing
+
+- [ ] Sign in to **[zenodo.org](https://zenodo.org)** with GitHub (first time only).
+- [ ] On your Zenodo **GitHub settings** page, find this repo and switch the toggle **ON**.
+      Press *Sync now* if a newly created repo isn't listed.
+
+> **The next step is permanent.** A published Zenodo record cannot be deleted — it gets a DOI
+> and stays. Zenodo also archives **only** releases published *after* the toggle above is on.
+
+### 5 · Release (GitHub)
+
+- [ ] Cut a versioned GitHub **release** — this is the distributable snapshot and the trigger for
+      everything downstream.
+
+### 6 · Verify (zenodo.org)
+
+- [ ] Check the **Zenodo record**: metadata complete (title, authors, keywords, license), and the
+      record shows in the **`cvdlink`** community.
+- [ ] *(AI models)* Optionally upload the **AI Card** HTML as a file on the record too, so people
+      can read it without downloading the archive.
+- [ ] Add the **DOI** to `README.md` under *How to cite* — and the AI Card / AIMe links if they apply.
+
+### 7 · Automatic — nothing to do
+
+OpenAIRE harvests the Zenodo record, and it becomes discoverable through the EOSC EU Node.
+
+**Later:** a new GitHub release becomes a new Zenodo version with its own DOI. Not every commit
+needs one.
 
 ## Notes
 

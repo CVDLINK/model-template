@@ -2,11 +2,11 @@
 
 > Created from the CVDLINK **repo-template**. Fill in the placeholders below, then work
 > through [PUBLISHING.md](PUBLISHING.md) to release this project to Zenodo → OpenAIRE → EOSC.
-> It works for any shareable output — a model, a tool, a library, or a dataset.
+> It works for any research output — a model, a tool, or a dataset.
 
 ## What it is
 
-<2–5 sentences: what this project is (model / tool / library / dataset), and its intended use.>
+<2–5 sentences: what this project is (model / tool / dataset), and its intended use.>
 
 ## Status
 
@@ -25,9 +25,14 @@ pip install -r requirements.txt
 python run.py --input example_input
 ```
 
-## AIMe registry — *AI models only*
+## Model documentation — *AI models only*
 
-If this project is an AI model:
+If this project is an AI model, it is described by an **AI Card**: what it does, the data and
+cohort it was built on, how it was evaluated, its limitations, and — for a system used on
+people — its risk profile. The card is generated from the model description file and lives in
+this repo, so it is versioned with the model and archived with each release.
+
+- **AI Card:** <path to the card in this repo, e.g. `docs/ai-card.html`.>
 - **AIMe registry:** <add the registry link once the record is submitted.>
 
 ## Maintainer

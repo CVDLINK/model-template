@@ -29,6 +29,7 @@ SCRIPT_DIR = Path(__file__).parent
 AI_MODEL_DIR = SCRIPT_DIR.parent.parent
 SCHEMA = AI_MODEL_DIR / "model-description.schema.json"
 DEFAULT_INPUT = AI_MODEL_DIR / "model-description.yaml"
+CONTEXT_FILE = AI_MODEL_DIR / "ai-card.context.jsonld"
 OUTPUT_DIR = AI_MODEL_DIR
 
 
@@ -211,6 +212,68 @@ MODULE_RENDERERS = [
     ("deployment", "Deployment, Human Involvement & Risk", render_deployment, True),
 ]
 
+# Sections the card itself shows. The model description is the union of the card and
+# the AIMe registry, so method_detail / reproducibility / privacy / epistasis are
+# deliberately absent here — they feed AIMe, not the card. The one exception is the
+# code licence, which lives under reproducibility but is rendered in Card §9.
+CARD_SECTIONS = [
+    "card_metadata", "identity", "provenance", "intended", "io", "components",
+    "data", "metrics", "limitations", "predetermined_changes", "governance",
+] + [key for key, _, _, _ in MODULE_RENDERERS]
+
+
+def card_view(data):
+    """The machine-readable card: the same content the HTML renders, nothing more."""
+    out = {k: data[k] for k in CARD_SECTIONS if k in data}
+    licence = data.get("reproducibility", {}).get("source_code", {}).get("license")
+    if licence:
+        out.setdefault("governance", {})["code_license"] = licence
+    return out
+
+
+# Nodes worth labelling with a type, so a consumer can select "every dataset" or
+# "every metric". Everything else still gets an IRI from @vocab in the context —
+# nothing is dropped, it is just untyped.
+NODE_TYPES = [
+    (("data", "datasets"), "dcat:Dataset"),
+    (("provenance", "contacts"), "schema:Person"),
+    (("components",), "cvd:Component"),
+    (("metrics",), "cvd:Metric"),
+    (("predetermined_changes",), "cvd:PredeterminedChange"),
+]
+
+
+def _dig(obj, path):
+    for key in path:
+        if not isinstance(obj, dict) or key not in obj:
+            return None
+        obj = obj[key]
+    return obj if isinstance(obj, list) else None
+
+
+def card_jsonld(data):
+    """card_view plus the JSON-LD context and node types.
+
+    The context is embedded rather than linked, so the file stands alone: no URL to
+    host, nothing to fetch when reading it. If the context is ever published at a
+    stable URL, replace the embedded object with that URL — one line, and already
+    published cards keep working.
+    """
+    doc = card_view(data)
+    for path, type_iri in NODE_TYPES:
+        for node in _dig(doc, path) or []:
+            if isinstance(node, dict):
+                node["@type"] = type_iri
+    # A dataset is also training or evaluation data in the DPV sense. Saying so with
+    # dpv:ai terms makes "what was this trained on" answerable without knowing the
+    # CVDLINK field names.
+    for ds in _dig(doc, ("data", "datasets")) or []:
+        if isinstance(ds, dict) and "used_for_training" in ds:
+            role = "ai:TrainingData" if ds["used_for_training"] else "ai:TestingData"
+            ds["@type"] = [ds["@type"], role]
+    context = json.loads(CONTEXT_FILE.read_text())["@context"]
+    return {"@context": context, "@type": "cvd:AICard", **doc}
+
 
 # ----------------------------------------------------------------------------
 # HTML assembly
@@ -331,7 +394,7 @@ def process(path):
         return False
     OUTPUT_DIR.mkdir(exist_ok=True)
     (OUTPUT_DIR / f"{name}.html").write_text(render_html(data))
-    (OUTPUT_DIR / f"{name}.jsonld").write_text(json.dumps(data, indent=2))
+    (OUTPUT_DIR / f"{name}.jsonld").write_text(json.dumps(card_jsonld(data), indent=2))
     active = [k for k, _, _, _ in MODULE_RENDERERS if k in data]
     print(f"✓ {name}: valid · type={data['identity']['model_type']} · modules=[{', '.join(active)}] -> {name}.html")
     return True

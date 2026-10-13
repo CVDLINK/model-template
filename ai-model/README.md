@@ -72,6 +72,12 @@ Writes `model-description.html` and `.jsonld` into this folder, next to the desc
 from. The input is validated first — an invalid file fails loudly rather than producing a
 half-filled card.
 
+The `.jsonld` is the same content as the visual card, expressed as linked data: field names become
+URLs that other systems already understand (`schema:name`, `dcat:Dataset`), so a card can be
+queried, or joined to its Zenodo record, without anyone having read the CVDLINK schema. The
+vocabulary lives in [`ai-card.context.jsonld`](ai-card.context.jsonld) and is embedded into every
+card, so the file stands alone with nothing to fetch.
+
 **Commit both.** They are versioned alongside the model and go into the Zenodo archive with each
 release.
 

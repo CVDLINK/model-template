@@ -78,6 +78,12 @@ queried, or joined to its Zenodo record, without anyone having read the CVDLINK 
 vocabulary lives in [`ai-card.context.jsonld`](ai-card.context.jsonld) and is embedded into every
 card, so the file stands alone with nothing to fetch.
 
+What makes that joining possible is the card's **identity** — the DOI or URL the model is published
+under. Once you have a Zenodo DOI, put it in `card_metadata.identifier` and regenerate: the card
+becomes citable and can be linked to its record. Until then your source-code URL stands in, and
+without either the card is anonymous — readable, but impossible to point at. `card_date` and
+`spec_url` are filled in for you at generation time; leave them out of the file.
+
 **Commit both.** They are versioned alongside the model and go into the Zenodo archive with each
 release.
 
@@ -93,6 +99,10 @@ python submit_report.py               # submit it (not public by default)
 > **A submitted AIMe record cannot be deleted.** Like a Zenodo DOI, it is permanent — you can
 > update it, but not remove it. `submit_report.py` submits as **not public**, so the record exists
 > but isn't listed; review it, then re-submit with `--public` when you're satisfied.
+
+Because that is irreversible, the description is validated against the schema before anything is
+built or sent — the same check the AI Card generator runs. An invalid file stops here rather than
+becoming a permanent record.
 
 **Keep the report key that comes back.** The API shows the password once, and you need it to
 update the entry later. `submit_report.py` stores it in `output/reports.json` — that file holds

@@ -27,33 +27,28 @@
     "name": "schema:name",
     "institution": "schema:affiliation",
     "email": "schema:email",
-    "orcid": {
-      "@id": "schema:identifier",
-      "@type": "@id"
-    },
+    "orcid": "schema:identifier",
     "funding": "schema:funding",
-    "paper_url": {
-      "@id": "schema:citation",
-      "@type": "@id"
-    },
+    "paper_url": "schema:citation",
     "datasets": "schema:dataset",
     "description": "dcterms:description",
-    "documentation_link": {
-      "@id": "schema:documentation",
-      "@type": "@id"
-    },
-    "location_or_request": {
+    "documentation_link": "schema:documentation",
+    "location_or_request": "dcterms:accessRights",
+    "access_url": {
       "@id": "dcat:accessURL",
       "@type": "@id"
     },
     "code_license": "schema:license",
     "purpose": "schema:applicationSubCategory"
   },
+  "@id": "https://github.com/example-org/heartwatch-ecg",
   "@type": "cvd:AICard",
   "card_metadata": {
     "card_version": "1.0.0",
     "card_language": "en",
-    "card_publisher": "CVDLINK Consortium"
+    "card_publisher": "CVDLINK Consortium",
+    "card_date": "2026-10-13",
+    "spec_url": "heartwatch-ecg.jsonld"
   },
   "identity": {
     "system_name": "EXAMPLE \u2014 HeartWatch-ECG Arrhythmic Risk Classifier",
@@ -118,21 +113,27 @@
       "name": "HeartWatch-Net",
       "type": "model",
       "version": "1.0.0",
-      "documentation_link": "internal://models/heartwatch-net/model-card",
+      "documentation_link": {
+        "@id": "internal://models/heartwatch-net/model-card"
+      },
       "@type": "cvd:Component"
     },
     {
       "name": "NordECG-Arrhythmia Cohort",
       "type": "dataset",
       "version": "2.0.0",
-      "documentation_link": "internal://datasets/nordecg-arrhythmia/datasheet",
+      "documentation_link": {
+        "@id": "internal://datasets/nordecg-arrhythmia/datasheet"
+      },
       "@type": "cvd:Component"
     },
     {
       "name": "ECG Preprocessing Pipeline",
       "type": "system",
       "version": "1.4.0",
-      "documentation_link": "internal://systems/ecg-preprocess/docs",
+      "documentation_link": {
+        "@id": "internal://systems/ecg-preprocess/docs"
+      },
       "@type": "cvd:Component"
     }
   ],
@@ -149,8 +150,8 @@
         "used_for_training": true,
         "bias_checked": true,
         "bias_details": "Checked for age and sex representation; mild under-representation of patients under 40 noted.",
-        "n_samples": "62000",
-        "n_features": "5000",
+        "n_samples": 62000,
+        "n_features": 5000,
         "preprocessing": [
           "Baseline-wander removal",
           "Normalization",
@@ -177,8 +178,8 @@
         "used_for_training": false,
         "bias_checked": true,
         "bias_details": "Site and device distribution reviewed; performance reported per site.",
-        "n_samples": "14500",
-        "n_features": "5000",
+        "n_samples": 14500,
+        "n_features": 5000,
         "personal_data": true,
         "personal_data_category": "Health data (ECG recordings)",
         "dpia_conducted": true,

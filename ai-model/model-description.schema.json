@@ -16,6 +16,7 @@
         "card_date": { "type": "string", "format": "date", "description": "Filled in automatically with the generation date — you do not enter this.", "x-feeds": "Card metadata" },
         "card_language": { "type": "string", "const": "en", "description": "The description is written in English." },
         "card_publisher": { "type": "string", "description": "The organisation publishing this description, e.g. CVDLINK Consortium." },
+        "identifier": { "type": "string", "description": "Optional — the DOI or permanent URL this model is published under, e.g. https://doi.org/10.5281/zenodo.1234567. Add it after your first release and regenerate: it becomes the card's identity, so the card can be cited and linked to its record. Until then the source-code URL is used.", "x-feeds": "Card metadata" },
         "contact": { "type": "string", "description": "Contact email shown on the card. Optional — leave blank to reuse the first person listed under provenance → contacts.", "x-feeds": "Card header" },
         "spec_url": { "type": "string", "description": "Filled in automatically with the link to the machine-readable file — you do not enter this.", "x-feeds": "Card metadata" }
       }

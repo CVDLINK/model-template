@@ -39,14 +39,26 @@ from pathlib import Path
 
 try:
     import yaml
+    from jsonschema import Draft202012Validator
 except ImportError:
-    sys.exit("Missing dep. Run:  pip install -r requirements.txt")
+    sys.exit("Missing deps. Run:  pip install -r requirements.txt")
 
 SCRIPT_DIR = Path(__file__).parent
 AI_MODEL_DIR = SCRIPT_DIR.parent.parent
+SCHEMA = AI_MODEL_DIR / "model-description.schema.json"
 DEFAULT_INPUT = AI_MODEL_DIR / "model-description.yaml"
 OUTPUT_DIR = SCRIPT_DIR / "output"
 DEFAULT_BASE = "http://localhost:9000"
+
+
+# ---------------------------------------------------------------------------
+# Validation (same schema the AI Card generator uses)
+# ---------------------------------------------------------------------------
+def validate(data):
+    schema = json.loads(SCHEMA.read_text())
+    validator = Draft202012Validator(schema)
+    errors = sorted(validator.iter_errors(data), key=lambda e: list(e.path))
+    return ["/".join(str(p) for p in e.path) + ": " + e.message for e in errors]
 
 
 # ---------------------------------------------------------------------------
@@ -308,7 +320,15 @@ def _request(method, url, body=None):
 
 
 def load_and_build(path):
+    """Validate first, then map. An AIMe record cannot be deleted once submitted, so an
+    invalid description must fail here rather than become a permanent public entry."""
     data = yaml.safe_load(Path(path).read_text())
+    errors = validate(data)
+    if errors:
+        print(f"✗ {Path(path).stem}: INVALID against model-description.schema.json")
+        for e in errors:
+            print(f"    - {e}")
+        sys.exit("Refusing to build an AIMe entry from an invalid model description.")
     return build_answers(data), Path(path).stem
 
 

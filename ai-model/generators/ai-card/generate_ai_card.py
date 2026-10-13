@@ -17,6 +17,9 @@ Usage:
 import sys
 import json
 import html
+import copy
+import re
+from datetime import date
 from pathlib import Path
 
 try:
@@ -30,7 +33,6 @@ AI_MODEL_DIR = SCRIPT_DIR.parent.parent
 SCHEMA = AI_MODEL_DIR / "model-description.schema.json"
 DEFAULT_INPUT = AI_MODEL_DIR / "model-description.yaml"
 CONTEXT_FILE = AI_MODEL_DIR / "ai-card.context.jsonld"
-OUTPUT_DIR = AI_MODEL_DIR
 
 
 # ----------------------------------------------------------------------------
@@ -223,12 +225,86 @@ CARD_SECTIONS = [
 
 
 def card_view(data):
-    """The machine-readable card: the same content the HTML renders, nothing more."""
-    out = {k: data[k] for k in CARD_SECTIONS if k in data}
+    """The machine-readable card: the same content the HTML renders, nothing more.
+
+    Deep-copied, so JSON-LD shaping cannot reach back into the input the HTML reads.
+    """
+    out = copy.deepcopy({k: data[k] for k in CARD_SECTIONS if k in data})
     licence = data.get("reproducibility", {}).get("source_code", {}).get("license")
     if licence:
         out.setdefault("governance", {})["code_license"] = licence
     return out
+
+
+# ----------------------------------------------------------------------------
+# Links
+#
+# JSON-LD drops a value typed as an identifier when it is not an absolute IRI, with
+# no error. These fields accept a bare id or free text as well as a URL, so each
+# value is resolved on its own: an IRI where one can be built, a literal otherwise.
+# ----------------------------------------------------------------------------
+DOI_RE = re.compile(r"^(?:doi:)?\s*(10\.\d{4,9}/\S+)$", re.I)
+ORCID_RE = re.compile(r"^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$", re.I)
+SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.\-]*:")
+
+# field -> the bare-identifier form it also accepts
+LINK_FIELDS = {"paper_url": "doi", "orcid": "orcid", "documentation_link": None}
+
+
+def as_iri(value, bare=None):
+    """Absolute IRI for a value meant to be a link, or None if it is free text."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    v = value.strip()
+    if bare == "orcid" and ORCID_RE.match(v):
+        return f"https://orcid.org/{v}"
+    doi = DOI_RE.match(v)
+    if doi and bare in ("doi", None):
+        return f"https://doi.org/{doi.group(1)}"
+    return v if SCHEME_RE.match(v) else None
+
+
+def linkify(node):
+    """Rewrite resolvable link values in place as {"@id": ...}; leave the rest alone."""
+    if isinstance(node, list):
+        for item in node:
+            linkify(item)
+        return
+    if not isinstance(node, dict):
+        return
+    for field, bare in LINK_FIELDS.items():
+        iri = as_iri(node.get(field), bare)
+        if iri:
+            node[field] = {"@id": iri}
+    access = as_iri(node.get("location_or_request"))
+    if access:
+        node.pop("location_or_request")
+        node["access_url"] = access
+    for value in node.values():
+        linkify(value)
+
+
+def numberify(datasets):
+    """Emit digit-only cohort sizes as numbers, so they can be compared and sorted."""
+    for ds in datasets:
+        for field in ("n_samples", "n_features"):
+            value = ds.get(field)
+            if isinstance(value, str) and value.strip().isdigit():
+                ds[field] = int(value.strip())
+
+
+def card_id(data):
+    """The card's identity: an explicit identifier, else the source repo, else none.
+
+    Without one the card is a blank node — it cannot be cited or joined to its record.
+    """
+    meta = data.get("card_metadata", {})
+    source = data.get("reproducibility", {}).get("source_code", {})
+    for candidate in (meta.get("identifier"), source.get("url")):
+        iri = as_iri(candidate)
+        if iri:
+            return iri
+    return None
 
 
 # Nodes worth labelling with a type, so a consumer can select "every dataset" or
@@ -271,8 +347,14 @@ def card_jsonld(data):
         if isinstance(ds, dict) and "used_for_training" in ds:
             role = "ai:TrainingData" if ds["used_for_training"] else "ai:TestingData"
             ds["@type"] = [ds["@type"], role]
+    numberify(_dig(doc, ("data", "datasets")) or [])
+    linkify(doc)
     context = json.loads(CONTEXT_FILE.read_text())["@context"]
-    return {"@context": context, "@type": "cvd:AICard", **doc}
+    head = {"@context": context}
+    identity = card_id(data)
+    if identity:
+        head["@id"] = identity
+    return {**head, "@type": "cvd:AICard", **doc}
 
 
 # ----------------------------------------------------------------------------
@@ -370,7 +452,7 @@ def render_html(data):
 <body>
 <header>
   <h1>{esc(ident.get('system_name',''))} <span class="sub">v{esc(ident.get('version',''))}</span></h1>
-  <div class="sub">{esc(meta.get('card_publisher',''))} · card {esc(meta.get('card_version',''))} · {esc(contact)}{spec_link}</div>
+  <div class="sub">{esc(meta.get('card_publisher',''))} · card {esc(meta.get('card_version',''))} · {esc(meta.get('card_date',''))} · {esc(contact)}{spec_link}</div>
   <div class="badges">{badges}</div>
 </header>
 <main class="grid">
@@ -392,9 +474,14 @@ def process(path):
         for e in errors:
             print(f"    - {e}")
         return False
-    OUTPUT_DIR.mkdir(exist_ok=True)
-    (OUTPUT_DIR / f"{name}.html").write_text(render_html(data))
-    (OUTPUT_DIR / f"{name}.jsonld").write_text(json.dumps(card_jsonld(data), indent=2))
+    # The two fields the developer is told not to fill in. Set once, before either
+    # output is built, so the card and its machine-readable twin agree.
+    meta = data.setdefault("card_metadata", {})
+    meta.setdefault("card_date", date.today().isoformat())
+    meta.setdefault("spec_url", f"{name}.jsonld")
+    out_dir = Path(path).parent
+    (out_dir / f"{name}.html").write_text(render_html(data))
+    (out_dir / f"{name}.jsonld").write_text(json.dumps(card_jsonld(data), indent=2))
     active = [k for k, _, _, _ in MODULE_RENDERERS if k in data]
     print(f"✓ {name}: valid · type={data['identity']['model_type']} · modules=[{', '.join(active)}] -> {name}.html")
     return True

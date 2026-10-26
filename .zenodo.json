@@ -8,8 +8,8 @@
   "creators": [
     {
       "name": "Lastname, Firstname",
-      "affiliation": "<Institution>",
-      "orcid": "0000-0000-0000-0000"
+      "orcid": "<ORCID iD, or delete this line - optional>",
+      "affiliation": "<Institution>"
     }
   ],
   "contributors": [

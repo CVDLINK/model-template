@@ -2,7 +2,8 @@
 
 > Created from the CVDLINK **repo-template**. Fill in the placeholders below, then work
 > through [PUBLISHING.md](PUBLISHING.md) to release this project to Zenodo → OpenAIRE → EOSC.
-> It works for any research output — a model, a tool, or a dataset.
+> It works for any research output — a model, a tool, or a dataset. Delete this note once
+> everything is published (PUBLISHING.md stage 8).
 
 ## What it is
 
@@ -42,3 +43,8 @@ this repo, so it is versioned with the model and archived with each release.
 ## How to cite
 
 Once this repo is archived to Zenodo, add the DOI here (citation metadata lives in `.zenodo.json`).
+
+<!-- Optional, AI models only: if the model is also listed on the AI4EOSC Marketplace
+     (see ai-model/AI4EOSC.md), add that link here too. -->
+- **Run it:** <AI4EOSC Marketplace link — delete this line if not listed>
+

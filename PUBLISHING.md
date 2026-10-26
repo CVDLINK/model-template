@@ -10,10 +10,20 @@ refers to it.
 
 ![Data flow](data-flow.jpg)
 
+This file is a temporary checklist: once everything is published, you delete it (stage 8) so your
+repo stays minimal.
+
 ## Checklist
 
 Everything up to the release is reversible — after the
 release it is not.
+
+### 0 · Create your repo from the template (GitHub)
+
+- [ ] On the [template's GitHub page](https://github.com/CVDLINK/repo-template), click the green
+      **Use this template** button (top right) → *Create a new repository*.
+- [ ] Choose the owner, name and visibility. Either visibility works for now, but Zenodo can only
+      archive **public** repos, so it has to be public before stage 4.
 
 ### 1 · In this repo (GitHub)
 
@@ -21,6 +31,8 @@ release it is not.
 - [ ] Update `CHANGELOG.md` for the release.
 - [ ] Confirm the `LICENSE` (default MIT — change if needed; don't hand-write license text).
 - [ ] Edit `.zenodo.json` (title, description, creators, keywords) — keep `communities: cvdlink`.
+      **`orcid` is optional** — delete the line for any creator without one. Zenodo checks it, so a
+      placeholder value makes the release fail.
 - [ ] **Validate `.zenodo.json`** (e.g. <https://www.jsonschemavalidator.net/>). If it has errors,
       Zenodo silently publishes nothing — this failure gives you no warning.
 - [ ] Add the content you're sharing: code, weights, notebooks, evaluation results.
@@ -40,14 +52,15 @@ Full detail in **[`ai-model/`](ai-model/)**. In short:
 
 ### 3 · Make it public (GitHub)
 
-- [ ] Make the repo **public** and confirm no sensitive content (data, site identifiers,
-      credentials, internal URLs).
+- [ ] Confirm no sensitive content (data, site identifiers, credentials, internal URLs).
+- [ ] If the repo is still private, make it **public** (*Settings → General → Danger Zone →
+      Change visibility*).
 
 ### 4 · Connect to Zenodo (zenodo.org) — before releasing
 
 - [ ] Sign in to **[zenodo.org](https://zenodo.org)** with GitHub (first time only).
-- [ ] On your Zenodo **GitHub settings** page, find this repo and switch the toggle **ON**.
-      Press *Sync now* if a newly created repo isn't listed.
+- [ ] On your **[Zenodo GitHub settings page](https://zenodo.org/account/settings/github/)**, find
+      this repo and switch the toggle **ON**. Press *Sync now* if a newly created repo isn't listed.
 
 > **The next step is permanent.** A published Zenodo record cannot be deleted — it gets a DOI
 > and stays. Zenodo also archives **only** releases published *after* the toggle above is on.
@@ -59,11 +72,16 @@ Full detail in **[`ai-model/`](ai-model/)**. In short:
 
 ### 6 · Verify (zenodo.org)
 
+- [ ] Check the release reached Zenodo: on the
+      [Zenodo GitHub settings page](https://zenodo.org/account/settings/github/), click the repo
+      name to see each release's status. If it failed, the error is shown there.
 - [ ] Check the **Zenodo record**: metadata complete (title, authors, keywords, license), and the
       record shows in the **`cvdlink`** community.
 - [ ] *(AI models)* Optionally upload the **AI Card** HTML as a file on the record too, so people
       can read it without downloading the archive.
-- [ ] Add the **DOI** to `README.md` under *How to cite* — and the AI Card / AIMe links if they apply.
+- [ ] Add the **DOI** to `README.md` under *How to cite* — and the AI Card / AIMe links if they
+      apply, plus the AI4EOSC Marketplace link if you list the model there
+      ([`ai-model/AI4EOSC.md`](ai-model/AI4EOSC.md)).
 
 ### 7 · Automatic — nothing to do
 
@@ -71,6 +89,13 @@ OpenAIRE harvests the Zenodo record, and it becomes discoverable through the EOS
 
 **Later:** a new GitHub release becomes a new Zenodo version with its own DOI. Not every commit
 needs one.
+
+### 8 · Clean up (GitHub)
+
+- [ ] Delete this file (`PUBLISHING.md`), its diagram (`data-flow.jpg`) and the template note at
+      the top of `README.md`, then commit and push. The checklist stays readable in the
+      [template repo](https://github.com/CVDLINK/repo-template/blob/main/PUBLISHING.md).
+- [ ] Cut a new **release** (e.g. a patch version), so the latest Zenodo version is the clean one.
 
 ## Notes
 

@@ -1,12 +1,12 @@
-# Publishing this project
+# Publishing this model
 
-This repo was created from the CVDLINK **repo-template**. Work through the checklist below to
-release it to Zenodo → OpenAIRE → EOSC. It applies to any research output — a model, a tool, or
-a dataset.
+This repo was created from the CVDLINK **model-template**. Work through the checklist below to
+release the model to Zenodo → OpenAIRE → EOSC. Besides the Zenodo record, the model gets an
+**AI Card** and an **AIMe registry** entry: ➡ **[`ai-model/`](ai-model/)**.
 
-If your output is an **AI model**, it also gets an AI Card and an AIMe registry entry:
-➡ **[`ai-model/`](ai-model/)**. If it isn't, **delete the `ai-model/` folder** — nothing else
-refers to it.
+Not an AI model? Use the general
+[**repo-template**](https://github.com/CVDLINK/repo-template) instead — it fits tools, datasets
+and other outputs.
 
 ![Data flow](data-flow.jpg)
 
@@ -20,7 +20,7 @@ release it is not.
 
 ### 0 · Create your repo from the template (GitHub)
 
-- [ ] On the [template's GitHub page](https://github.com/CVDLINK/repo-template), click the green
+- [ ] On the [template's GitHub page](https://github.com/CVDLINK/model-template), click the green
       **Use this template** button (top right) → *Create a new repository*.
 - [ ] Choose the owner, name and visibility. Either visibility works for now, but Zenodo can only
       archive **public** repos, so it has to be public before stage 4.
@@ -31,15 +31,17 @@ release it is not.
 - [ ] Update `CHANGELOG.md` for the release.
 - [ ] Confirm the `LICENSE` (default MIT — change if needed; don't hand-write license text).
 - [ ] Edit `.zenodo.json` (title, description, creators, keywords) — keep `communities: cvdlink`.
+      Write every name as **`Lastname, Firstname`** (e.g. `"Virtanen, Anna"`).
       **`orcid` is optional** — delete the line for any creator without one. Zenodo checks it, so a
       placeholder value makes the release fail.
 - [ ] **Validate `.zenodo.json`** (e.g. <https://www.jsonschemavalidator.net/>). If it has errors,
       Zenodo silently publishes nothing — this failure gives you no warning.
 - [ ] Add the content you're sharing: code, weights, notebooks, evaluation results.
 
-### 2 · If this project is an AI model — in this repo (GitHub)
+### 2 · Describe the model (GitHub)
 
-Full detail in **[`ai-model/`](ai-model/)**. In short:
+Step-by-step instructions and commands are in **[`ai-model/README.md`](ai-model/README.md)**.
+In short:
 
 - [ ] Write the model's **model description file** (`ai-model/model-description.yaml`, copied from
       the template beside it) — one file that feeds both the AI Card and the AIMe record.
@@ -47,8 +49,6 @@ Full detail in **[`ai-model/`](ai-model/)**. In short:
       Zenodo archive with the release.
 - [ ] Generate and submit the **AIMe registry record**; keep the returned **report key** (you need
       it to update the entry later) and add the registry link to `README.md`.
-
-*Not an AI model? Delete the `ai-model/` folder and skip to stage 3.*
 
 ### 3 · Make it public (GitHub)
 
@@ -75,13 +75,16 @@ Full detail in **[`ai-model/`](ai-model/)**. In short:
 - [ ] Check the release reached Zenodo: on the
       [Zenodo GitHub settings page](https://zenodo.org/account/settings/github/), click the repo
       name to see each release's status. If it failed, the error is shown there.
-- [ ] Check the **Zenodo record**: metadata complete (title, authors, keywords, license), and the
-      record shows in the **`cvdlink`** community.
-- [ ] *(AI models)* Optionally upload the **AI Card** HTML as a file on the record too, so people
-      can read it without downloading the archive.
-- [ ] Add the **DOI** to `README.md` under *How to cite* — and the AI Card / AIMe links if they
-      apply, plus the AI4EOSC Marketplace link if you list the model there
+- [ ] Check the **Zenodo record**: metadata complete (title, authors, keywords, license).
+- [ ] The record joins the **`cvdlink`** community only after a community curator accepts its
+      inclusion request — until then it is published, with a DOI, but not listed there.
+- [ ] Optionally upload the **AI Card** HTML as a file on the record too, so people can read it
+      without downloading the archive.
+- [ ] Add the **DOI** to `README.md` under *How to cite*, along with the AIMe link — plus the
+      AI4EOSC Marketplace link if you list the model there
       ([`ai-model/AI4EOSC.md`](ai-model/AI4EOSC.md)).
+- [ ] Put the DOI in the model description's `card_metadata.identifier` and regenerate the AI Card,
+      so the card points at its record (see [`ai-model/`](ai-model/)).
 
 ### 7 · Automatic — nothing to do
 
@@ -94,7 +97,9 @@ needs one.
 
 - [ ] Delete this file (`PUBLISHING.md`), its diagram (`data-flow.jpg`) and the template note at
       the top of `README.md`, then commit and push. The checklist stays readable in the
-      [template repo](https://github.com/CVDLINK/repo-template/blob/main/PUBLISHING.md).
+      [template repo](https://github.com/CVDLINK/model-template/blob/main/PUBLISHING.md).
+- [ ] In `ai-model/`, delete the starter material: `examples/`, `model-description-template.yaml`
+      and `AI4EOSC.md`. Keep the rest — the generators need it when you update the model later.
 - [ ] Cut a new **release** (e.g. a patch version), so the latest Zenodo version is the clean one.
 
 ## Notes
@@ -105,18 +110,11 @@ needs one.
   as-is so the record links to the project in OpenAIRE/EOSC.
 - If you change the `LICENSE`, update the `.zenodo.json` `"license"` id to match (Zenodo uses
   lowercase ids, e.g. `"mit"`, `"apache-2.0"`, `"cc-by-4.0"`).
-- `"upload_type"` is pre-set to `software`. **Publishing a dataset or a document instead? See
-  below.**
+- `"upload_type"` is pre-set to `software`, which is right for a model — leave it.
 
 <details>
-<summary><strong>Metadata reference</strong> — other output types, contributors, CITATION.cff, OpenAIRE minimums</summary>
+<summary><strong>Metadata reference</strong> — contributors, CITATION.cff, OpenAIRE minimums</summary>
 
-- **Other `upload_type` values.** `software` (default) covers models, tools and code. Use
-  `dataset` for data, or `publication` for documentation and deliverables. Full list:
-  `publication`, `poster`, `presentation`, `dataset`, `image`, `video`, `software`, `lesson`,
-  `physicalobject`, `other`.
-  - `publication` also needs a `"publication_type"` (e.g. `report`, `deliverable`,
-    `softwaredocumentation`, `article`); `image` needs an `"image_type"` (e.g. `figure`, `diagram`).
 - **The `contributors` block is optional.** Fill it in for people who aren't authors (e.g. data
   curator, supervisor), or delete the whole block if there are none. Each contributor needs a
   `type` (e.g. `ProjectMember`, `DataCurator`, `Supervisor`).

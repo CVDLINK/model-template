@@ -1,23 +1,8 @@
 {
   "_comment": [
-    "JSON-LD context for the CVDLINK AI Card. The generator embeds this into every",
-    "generated .jsonld, so there is nothing to host and nothing to fetch at read time.",
-    "",
-    "@vocab means every field not listed below still gets a real IRI under the CVDLINK",
-    "namespace, so no part of the card is lost from the graph. The explicit mappings are",
-    "the fields where a widely-used term clearly fits; everything else stays a CVDLINK",
-    "term until there is a reason to map it.",
-    "",
-    "To use richer vocabulary later (AIRO/DPV for the risk and AI-Act parts), change the",
-    "mappings here and regenerate. The generator does not need to change.",
-    "",
-    "Link fields are deliberately NOT declared \"@type\": \"@id\" here. A term declared that",
-    "way is silently dropped from the graph when its value is not an absolute IRI — and",
-    "paper_url, orcid, documentation_link and location_or_request all accept a bare id or",
-    "plain prose by design ('how to request access', a DOI as 10.xxxx/yyy). The generator",
-    "decides per value instead: it emits {\"@id\": ...} for anything it can resolve to an",
-    "IRI, and a plain literal otherwise. Either way the value stays in the graph.",
-    "access_url is the one exception — the generator only ever puts a real URL there."
+    "JSON-LD context for the CVDLINK AI Card. The generator embeds it into every generated",
+    ".jsonld, so there is nothing to host. Fields not mapped below fall under the CVDLINK",
+    "namespace (@vocab). To change a mapping, edit it here and regenerate the card."
   ],
 
   "@context": {

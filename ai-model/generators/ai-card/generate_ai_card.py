@@ -265,7 +265,11 @@ def as_iri(value, bare=None):
 
 
 def linkify(node):
-    """Rewrite resolvable link values in place as {"@id": ...}; leave the rest alone."""
+    """Rewrite resolvable link values in place as {"@id": ...}; leave the rest alone.
+
+    Done per value rather than with "@type": "@id" in the context, because a term typed that
+    way is dropped from the graph when its value is a bare id or prose, which link fields allow.
+    """
     if isinstance(node, list):
         for item in node:
             linkify(item)

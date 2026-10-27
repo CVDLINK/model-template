@@ -1,8 +1,5 @@
 # Describing an AI model
 
-**This folder is for AI models only.** If your output is a tool or a dataset, delete the whole
-`ai-model/` folder and follow [`../PUBLISHING.md`](../PUBLISHING.md) on its own.
-
 Want other people to be able to *run* an open model as well? [`AI4EOSC.md`](AI4EOSC.md) covers the
 optional listing on the AI4EOSC Marketplace, and what it makes public.
 

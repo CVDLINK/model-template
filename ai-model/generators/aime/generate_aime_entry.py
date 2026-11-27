@@ -2,7 +2,10 @@
 """
 CVDLINK AIMe-registry entry generator — driven by the model description.
 
-Pipeline:  model description YAML  ->  AIMe `answers` tree (MD/P/D/M/R)  ->  write / submit
+Pipeline:  model description YAML  ->  AIMe `answers` tree (MD/P/D/M/R)  ->  output/*.answers.json
+
+This script only BUILDS the entry; it never writes to the registry. Submitting and updating
+are done by submit_report.py, which also stores the report password you need later.
 
 ONE developer input (../model-description) produces the AIMe entry here and the AI Card
 in ../ai-card. This maps the human-readable model description fields onto the AIMe
@@ -23,11 +26,9 @@ The `answers` body encoding (see aime README):
 Usage:
     python generate_aime_entry.py                         # build -> output/<name>.answers.json
     python generate_aime_entry.py path/to/model.yaml      # a specific model description file
-    python generate_aime_entry.py submit [model.yaml]     # build + POST + round-trip diff
-    python generate_aime_entry.py get <id>
-    python generate_aime_entry.py update <id> <password> [model.yaml]
+    python generate_aime_entry.py get <id>                # read a report back from the registry
 
-  Point at a self-hosted backend with --base-url (default http://localhost:9000). Submits are isPublic:false.
+  --base-url  registry API (default https://aime-registry.org/api, the live registry)
 """
 
 import argparse
@@ -48,7 +49,16 @@ AI_MODEL_DIR = SCRIPT_DIR.parent.parent
 SCHEMA = AI_MODEL_DIR / "model-description.schema.json"
 DEFAULT_INPUT = AI_MODEL_DIR / "model-description.yaml"
 OUTPUT_DIR = SCRIPT_DIR / "output"
-DEFAULT_BASE = "http://localhost:9000"
+DEFAULT_BASE = "https://aime-registry.org/api"   # live registry API (what its website calls)
+LIVE_WEB = "https://aime-registry.org"
+USER_AGENT = "cvdlink-aime-client/1.0"   # the live API answers 403 to Python's default agent
+
+
+def report_page(base_url, rid):
+    """Human-readable link to a report: the registry website for the live API, else the API URL."""
+    if base_url.rstrip("/") == DEFAULT_BASE:
+        return f"{LIVE_WEB}/report/{rid}"
+    return f"{base_url.rstrip('/')}/report/{rid}"
 
 
 # ---------------------------------------------------------------------------
@@ -305,18 +315,21 @@ def build_epistasis(ep):
 
 
 # ---------------------------------------------------------------------------
-# HTTP transport (self-hosted AIMe backend) — carried over from the phase-0 test
+# HTTP transport — the live registry API, or a self-hosted backend via --base-url
 # ---------------------------------------------------------------------------
 def _request(method, url, body=None):
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(url, data=data, method=method)
     req.add_header("Content-Type", "application/json")
+    req.add_header("User-Agent", USER_AGENT)
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=30) as resp:
             raw = resp.read().decode()
             return resp.status, (json.loads(raw) if raw.strip() else None)
     except urllib.error.HTTPError as e:
         return e.code, e.read().decode(errors="replace")
+    except urllib.error.URLError as e:
+        sys.exit(f"Could not reach {url}: {e.reason}")
 
 
 def load_and_build(path):
@@ -357,53 +370,27 @@ def cmd_build(args):
     print(f"✓ {name}: built AIMe answers (sections {', '.join(answers)}) -> output/{name}.answers.json")
 
 
-def cmd_submit(args):
-    answers, name = load_and_build(args.input)
-    payload = {"answers": answers, "email": contact_email(args.input, args.email),
-               "isPublic": False, "attachReport": False}
-    status, resp = _request("POST", f"{args.base_url}/report", payload)
-    if status != 200 or not isinstance(resp, dict):
-        sys.exit(f"POST /report failed: HTTP {status}: {resp}")
-    rid, pw = resp["id"], resp["password"]
-    print(f"Created report: id={rid}  password={pw}  version={resp['version']}")
-    print(f"  -> {args.base_url}/report/{rid}")
-    status, got = _request("GET", f"{args.base_url}/report/{rid}")
-    if status == 200 and isinstance(got, dict) and got.get("answers") == answers:
-        print("Round-trip diff: MATCH (stored answers identical to submitted payload)")
-    else:
-        print("Round-trip diff: MISMATCH"); sys.exit(1)
-
-
-def cmd_update(args):
-    answers, _ = load_and_build(args.input)
-    payload = {"answers": answers, "email": contact_email(args.input, args.email),
-               "password": args.password,
-               "isPublic": False, "attachReport": False}
-    status, resp = _request("PUT", f"{args.base_url}/report/{args.report_id}", payload)
-    if status != 200 or not isinstance(resp, dict):
-        sys.exit(f"PUT /report/{args.report_id} failed: HTTP {status}: {resp}")
-    print(f"Updated report: id={resp['id']}  version={resp['version']}")
+def cmd_moved(args):
+    sys.exit(f"'{args.cmd}' has moved to submit_report.py, which also stores the report password:\n"
+             f"    python submit_report.py {'update <id>' if args.cmd == 'update' else ''}".rstrip())
 
 
 def cmd_get(args):
-    status, got = _request("GET", f"{args.base_url}/report/{args.report_id}")
+    status, got = _request("GET", f"{args.base_url.rstrip('/')}/report/{args.report_id}")
     print(f"HTTP {status}")
     print(json.dumps(got, indent=2) if isinstance(got, (dict, list)) else got)
 
 
 def main():
     p = argparse.ArgumentParser(description="Generate an AIMe registry entry from a model description")
-    p.add_argument("--base-url", default=DEFAULT_BASE, help=f"backend base URL (default {DEFAULT_BASE})")
-    p.add_argument("--email", default=None, help="contact email (default: provenance.contacts[0].email)")
+    p.add_argument("--base-url", default=DEFAULT_BASE, help=f"registry API (default {DEFAULT_BASE})")
     sub = p.add_subparsers(dest="cmd")
 
     b = sub.add_parser("build", help="build the answers JSON from a model description file (default)")
     b.add_argument("input", nargs="?", default=str(DEFAULT_INPUT))
-    s = sub.add_parser("submit", help="build + POST + round-trip diff")
-    s.add_argument("input", nargs="?", default=str(DEFAULT_INPUT))
-    u = sub.add_parser("update", help="build + PUT a new revision")
-    u.add_argument("report_id"); u.add_argument("password")
-    u.add_argument("input", nargs="?", default=str(DEFAULT_INPUT))
+    for moved in ("submit", "update"):
+        m = sub.add_parser(moved, help="moved to submit_report.py")
+        m.add_argument("rest", nargs="*")
     g = sub.add_parser("get", help="GET an existing report")
     g.add_argument("report_id")
 
@@ -418,7 +405,7 @@ def main():
         args.input = str(DEFAULT_INPUT)
         cmd_build(args)
     else:
-        {"build": cmd_build, "submit": cmd_submit, "update": cmd_update, "get": cmd_get}[args.cmd](args)
+        {"build": cmd_build, "submit": cmd_moved, "update": cmd_moved, "get": cmd_get}[args.cmd](args)
 
 
 if __name__ == "__main__":

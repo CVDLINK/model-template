@@ -89,29 +89,44 @@ release.
 
 ## 3 · Generate and submit the AIMe record
 
+The scripts send to the live registry at **aime-registry.org**. You don't need to run a server or
+set anything up.
+
 ```bash
 cd generators/aime
 pip install -r requirements.txt
-python generate_aime_entry.py         # build the entry from the same file
-python submit_report.py               # submit it (not public by default)
+python generate_aime_entry.py         # 1. build the entry and check it, sends nothing
+python submit_report.py               # 2. submit it, NOT public
+python submit_report.py update <id> --public   # 3. after review, make it appear in search
 ```
 
+1. **Build.** `generate_aime_entry.py` writes the entry to `output/<name>.answers.json` and sends
+   nothing. Run it as often as you like.
+2. **Submit.** `submit_report.py` creates the record **not public**: it exists, but doesn't show
+   up in the registry search. It prints the record's **id** and a link to review it.
+3. **Publish.** When the record looks right, run `update <id> --public`. This changes the
+   **same** record. Don't run `submit_report.py --public` at this point: that would create a
+   second, permanent record.
+
 > **A submitted AIMe record cannot be deleted.** Like a Zenodo DOI, it is permanent — you can
-> update it, but not remove it. `submit_report.py` submits as **not public**, so the record exists
-> but isn't listed; review it, then re-submit with `--public` when you're satisfied.
+> update it, but not remove it. So submit **once**, and from then on always use `update` with the
+> same id.
 
 Because that is irreversible, the description is validated against the schema before anything is
 built or sent — the same check the AI Card generator runs. An invalid file stops here rather than
 becoming a permanent record.
 
-**Keep the report key that comes back.** The API shows the password once, and you need it to
-update the entry later. `submit_report.py` stores it in `output/reports.json` — that file holds
-passwords, so keep it local and never commit it (it's already in `.gitignore`). Lose the key and
-you can never change the entry. To see what's stored:
+**Keep the report key that comes back.** The registry shows the password once, and you need it to
+update the entry later. `submit_report.py` stores it in `output/reports.json`, and `update` reads
+it from there. That file holds passwords, so keep it local and never commit it (it's already in
+`.gitignore`). Lose the key and you can never change the entry. To see what's stored:
 
 ```bash
 python submit_report.py list
 ```
+
+If you're updating from another machine where `reports.json` isn't present, pass the password
+yourself: `python submit_report.py update <id> --password <password>`.
 
 AIMe shows a completeness **score** on the registry. It isn't something you submit — AIMe computes
 it in the browser from your answers, so the way to raise it is to fill in more of the description.
@@ -128,8 +143,11 @@ creates a new version with its own DOI.
 For AIMe, update the existing record rather than submitting a second one:
 
 ```bash
-python generate_aime_entry.py update <id> <password>
+python submit_report.py update <id>
 ```
+
+This adds a new revision and keeps the record's visibility: a public record stays public, a hidden
+one stays hidden. Add `--public` or `--private` to change it.
 
 [^1]: Golpayegani, D., Hupont, I., Panigutti, C., Pandit, H.J., Schade, S., O'Sullivan, D., Lewis, D.
 (2024). *AI Cards: Towards an Applied Framework for Machine-Readable AI and Risk Documentation
